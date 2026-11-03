@@ -89,6 +89,8 @@ const $=id=>document.getElementById(id);
 const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
 let pinsel="FD";const wunsch={};
+// Empfänger rückwärts abgelegt, damit einfache Adress-Sammler ihn nicht im Seitentext finden
+const empfaenger=()=>["akhcstimer.netsrac","moc.duolci"].map(t=>[...t].reverse().join("")).join(String.fromCharCode(64));
 
 // Auswahl: aktueller Monat bis 14 Monate voraus, vorbelegt mit dem Folgemonat
 const jetzt=new Date();
@@ -117,7 +119,7 @@ function text(){
   const name=sauber($("name").value),notiz=sauber($("notiz").value);
   const t=`ITS-Wunsch | ${name||"?"} | ${$("monat").value} | ${tage} | ${notiz}`;
   $("text").value=t;
-  $("mail").href=`mailto:?subject=${encodeURIComponent("Dienstwünsche "+$("monat").selectedOptions[0].text+" – "+(name||""))}&body=${encodeURIComponent(t)}`;
+  $("mail").href=`mailto:${empfaenger()}?subject=${encodeURIComponent("Dienstwünsche "+$("monat").selectedOptions[0].text+" – "+(name||""))}&body=${encodeURIComponent(t)}`;
 }
 function melde(t,bad){$("meldung").textContent=t;$("meldung").className=bad?"bad":"";}
 function pruefe(){
