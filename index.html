@@ -34,7 +34,6 @@ button{-webkit-appearance:none;appearance:none}
 .kal button.w-FD{background:var(--FD)}.kal button.w-SD{background:var(--SD)}.kal button.w-ND{background:var(--ND);color:#fff}.kal button.w-frei{background:var(--F)}
 .leer{visibility:hidden}
 .knopf{display:block;width:100%;box-sizing:border-box;font-size:16px;padding:12px;border:0;border-radius:8px;background:var(--navy);color:#fff;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;margin-top:8px}
-.knopf.zwei{background:#fff;color:var(--navy);border:1px solid var(--navy)}
 #text{font-family:ui-monospace,Menlo,monospace;font-size:16px;height:110px}
 #meldung{min-height:20px;color:#265c1c;font-size:14px;margin-top:6px}
 #meldung.bad{color:#c00000}
@@ -43,7 +42,7 @@ button{-webkit-appearance:none;appearance:none}
 <body>
 <main>
   <h1>Dienstwünsche Intensivstation</h1>
-  <p class="hint">Name und Monat wählen, Wunsch antippen und dann die Tage antippen. Ein zweites Antippen mit demselben Wunsch entfernt ihn. Am Ende den Text kopieren und an die Dienstplanung schicken.</p>
+  <p class="hint">Name und Monat wählen, Wunsch antippen und dann die Tage antippen. Ein zweites Antippen mit demselben Wunsch entfernt ihn. Am Ende auf „Per E-Mail senden“ tippen und die Mail abschicken.</p>
 
   <div class="card">
     <div class="zeile">
@@ -68,10 +67,9 @@ button{-webkit-appearance:none;appearance:none}
   </div>
 
   <div class="card">
-    <label for="text">Text für die Dienstplanung</label>
+    <label for="text">Diese Wünsche gehen an die Dienstplanung</label>
     <textarea id="text" readonly></textarea>
-    <button class="knopf" id="kopieren">Text kopieren</button>
-    <a class="knopf zwei" id="mail" href="#">Per E-Mail senden</a>
+    <a class="knopf" id="mail" href="#">Per E-Mail senden</a>
     <div id="meldung"></div>
   </div>
 </main>
@@ -134,11 +132,6 @@ $("kal").onclick=e=>{const b=e.target.closest("button");if(!b)return;const t=+b.
 $("monat").onchange=()=>{for(const k of Object.keys(wunsch))delete wunsch[k];zeichne();};
 $("name").oninput=()=>{lsSet("its-wunsch-name",$("name").value.trim());text();};
 $("notiz").oninput=text;
-$("kopieren").onclick=async()=>{
-  if(!pruefe())return;
-  try{await navigator.clipboard.writeText($("text").value);melde("Kopiert. Jetzt in eine E-Mail oder Nachricht einfügen und senden.");}
-  catch(e){$("text").select();melde("Text ist markiert: bitte mit Kopieren übernehmen.");}
-};
 $("mail").onclick=e=>{if(!pruefe())e.preventDefault();};
 zeichne();
 </script>
