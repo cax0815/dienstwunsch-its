@@ -130,7 +130,7 @@ function text(){
   const d=new Date(),zwei=x=>String(x).padStart(2,"0"),stand=`${d.getFullYear()}-${zwei(d.getMonth()+1)}-${zwei(d.getDate())}T${zwei(d.getHours())}:${zwei(d.getMinutes())}`;
   const t=`ITS-Wunsch | ${name||"?"} | ${$("monat").value} | ${tage} | ${notiz} | ${stand}`;
   $("text").value=t;
-  $("mail").href=`mailto:${empfaenger()}?subject=${encodeURIComponent("Dienstwünsche "+$("monat").selectedOptions[0].text+" – "+(name||""))}&body=${encodeURIComponent(t)}`;
+  $("mail").href=`mailto:${empfaenger()}?subject=${encodeURIComponent("[ITS-Wunsch] "+$("monat").selectedOptions[0].text+" – "+(name||""))}&body=${encodeURIComponent(t)}`;
 }
 function melde(t,bad){$("meldung").textContent=t;$("meldung").className=bad?"bad":"";}
 function pruefe(){
