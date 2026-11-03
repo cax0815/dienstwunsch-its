@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:">
+<title>Dienstwünsche ITS</title>
+<style>
+:root{--ink:#1c2430;--mute:#667085;--line:#cfd5dd;--bg:#f4f5f7;--navy:#1f3864;--we:#f2dcdb;--FD:#ffff00;--SD:#ffc000;--ND:#0070c0;--F:#c6e0b4}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 4px}
+.hint{color:var(--mute);font-size:13px;margin:0 0 12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px}
+label{display:block;font-weight:600;margin-bottom:4px}
+input,select,textarea,button{font:inherit;color:inherit}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;background:#fff}
+.zeile{display:flex;gap:10px}
+.zeile>div{flex:1}
+.pinsel{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pinsel button{flex:1;min-width:64px;padding:10px 6px;border:1px solid #98a2b3;border-radius:6px;font-weight:700;background:#fff;cursor:pointer}
+.pinsel button.on{outline:3px solid var(--navy);outline-offset:1px}
+.kal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.kal .k{font-size:12px;color:var(--mute);text-align:center;padding:2px 0}
+.kal button{aspect-ratio:1/1.05;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.kal button.we{background:var(--we)}
+.kal button .t{font-size:13px}
+.kal button .c{font-size:12px;font-weight:700;min-height:15px}
+.kal button.w-FD{background:var(--FD)}.kal button.w-SD{background:var(--SD)}.kal button.w-ND{background:var(--ND);color:#fff}.kal button.w-frei{background:var(--F)}
+.leer{visibility:hidden}
+.knopf{display:inline-block;width:100%;padding:12px;border:0;border-radius:8px;background:var(--navy);color:#fff;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;margin-top:8px}
+.knopf.zwei{background:#fff;color:var(--navy);border:1px solid var(--navy)}
+#text{font-family:ui-monospace,Menlo,monospace;font-size:13px;height:84px}
+#meldung{min-height:20px;color:#265c1c;font-size:14px;margin-top:6px}
+#meldung.bad{color:#c00000}
+</style>
+</head>
+<body>
+<main>
+  <h1>Dienstwünsche Intensivstation</h1>
+  <p class="hint">Name und Monat wählen, Wunsch antippen und dann die Tage antippen. Ein zweites Antippen mit demselben Wunsch entfernt ihn. Am Ende den Text kopieren und an die Dienstplanung schicken.</p>
+
+  <div class="card">
+    <div class="zeile">
+      <div><label for="name">Name</label><input id="name" autocomplete="family-name" placeholder="Nachname wie im Dienstplan"></div>
+      <div><label for="monat">Monat</label><select id="monat"></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="pinsel" id="pinsel">
+      <button data-p="FD" style="background:var(--FD)">FD</button>
+      <button data-p="SD" style="background:var(--SD)">SD</button>
+      <button data-p="ND" style="background:var(--ND);color:#fff">ND</button>
+      <button data-p="frei" style="background:var(--F)">frei</button>
+    </div>
+    <div class="kal" id="kal"></div>
+  </div>
+
+  <div class="card">
+    <label for="notiz">Kommentar (optional)</label>
+    <textarea id="notiz" rows="2" maxlength="300" placeholder="z. B. bitte kein Wochenende am 13./14."></textarea>
+  </div>
+
+  <div class="card">
+    <label for="text">Text für die Dienstplanung</label>
+    <textarea id="text" readonly></textarea>
+    <button class="knopf" id="kopieren">Text kopieren</button>
+    <a class="knopf zwei" id="mail" href="#">Per E-Mail senden</a>
+    <div id="meldung"></div>
+  </div>
+</main>
+<script>
+"use strict";
+const MONATE=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const iso=(y,m,d)=>new Date(Date.UTC(y,m-1,d)).toISOString().slice(0,10);
+const plusTage=(s,n)=>new Date(Date.parse(s+"T00:00Z")+n*864e5).toISOString().slice(0,10);
+function ostern(j){const a=j%19,b=Math.floor(j/100),c=j%100,d=Math.floor(b/4),e=b%4,g=Math.floor((8*b+13)/25),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,m=(32+2*e+2*i-h-k)%7,n=Math.floor((a+11*h+22*m)/451),x=h+m-7*n+114;return iso(j,Math.floor(x/31),x%31+1);}
+function feiertag(s){
+  const j=+s.slice(0,4),o=ostern(j);
+  return [iso(j,1,1),plusTage(o,-2),plusTage(o,1),iso(j,5,1),plusTage(o,39),plusTage(o,50),plusTage(o,60),iso(j,10,3),iso(j,11,1),iso(j,12,24),iso(j,12,25),iso(j,12,26),iso(j,12,31)].includes(s);
+}
+const $=id=>document.getElementById(id);
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+let pinsel="FD";const wunsch={};
+
+// Auswahl: aktueller Monat bis 14 Monate voraus, vorbelegt mit dem Folgemonat
+const jetzt=new Date();
+for(let i=0;i<15;i++){
+  const d=new Date(jetzt.getFullYear(),jetzt.getMonth()+i,1),v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  $("monat").insertAdjacentHTML("beforeend",`<option value="${v}">${MONATE[d.getMonth()]} ${d.getFullYear()}</option>`);
+}
+$("monat").selectedIndex=1;
+$("name").value=lsGet("its-wunsch-name")||"";
+
+function zeichne(){
+  const [y,m]=$("monat").value.split("-").map(Number),n=new Date(Date.UTC(y,m,0)).getUTCDate();
+  const versatz=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7;
+  let h=["Mo","Di","Mi","Do","Fr","Sa","So"].map(t=>`<div class="k">${t}</div>`).join("");
+  for(let i=0;i<versatz;i++)h+=`<div class="leer"></div>`;
+  for(let t=1;t<=n;t++){
+    const s=iso(y,m,t),wd=new Date(s+"T00:00Z").getUTCDay(),we=wd===0||wd===6||feiertag(s),w=wunsch[t]||"";
+    h+=`<button data-t="${t}" class="${we?"we ":""}${w?"w-"+w:""}" aria-label="${t}. ${w||"kein Wunsch"}"><span class="t">${t}</span><span class="c">${w}</span></button>`;
+  }
+  $("kal").innerHTML=h;
+  text();
+}
+const sauber=t=>String(t).replace(/[|\r\n]+/g," ").trim();
+function text(){
+  const tage=Object.keys(wunsch).map(Number).sort((a,b)=>a-b).map(t=>`${String(t).padStart(2,"0")}:${wunsch[t]}`).join(" ");
+  const name=sauber($("name").value),notiz=sauber($("notiz").value);
+  const t=`ITS-Wunsch | ${name||"?"} | ${$("monat").value} | ${tage} | ${notiz}`;
+  $("text").value=t;
+  $("mail").href=`mailto:?subject=${encodeURIComponent("Dienstwünsche "+$("monat").selectedOptions[0].text+" – "+(name||""))}&body=${encodeURIComponent(t)}`;
+}
+function melde(t,bad){$("meldung").textContent=t;$("meldung").className=bad?"bad":"";}
+function pruefe(){
+  if(!sauber($("name").value)){melde("Bitte zuerst den Namen eintragen.",true);$("name").focus();return false;}
+  if(!Object.keys(wunsch).length&&!sauber($("notiz").value)){melde("Es ist noch kein Wunsch eingetragen.",true);return false;}
+  return true;
+}
+
+$("pinsel").onclick=e=>{const b=e.target.closest("button");if(!b)return;pinsel=b.dataset.p;document.querySelectorAll("#pinsel button").forEach(x=>x.classList.toggle("on",x===b));};
+document.querySelector('#pinsel [data-p="FD"]').classList.add("on");
+$("kal").onclick=e=>{const b=e.target.closest("button");if(!b)return;const t=+b.dataset.t;if(wunsch[t]===pinsel)delete wunsch[t];else wunsch[t]=pinsel;zeichne();};
+$("monat").onchange=()=>{for(const k of Object.keys(wunsch))delete wunsch[k];zeichne();};
+$("name").oninput=()=>{lsSet("its-wunsch-name",$("name").value.trim());text();};
+$("notiz").oninput=text;
+$("kopieren").onclick=async()=>{
+  if(!pruefe())return;
+  try{await navigator.clipboard.writeText($("text").value);melde("Kopiert. Jetzt in eine E-Mail oder Nachricht einfügen und senden.");}
+  catch(e){$("text").select();melde("Text ist markiert: bitte mit Kopieren übernehmen.");}
+};
+$("mail").onclick=e=>{if(!pruefe())e.preventDefault();};
+zeichne();
+</script>
+</body>
+</html>
