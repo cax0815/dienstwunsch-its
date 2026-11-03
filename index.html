@@ -126,7 +126,9 @@ const sauber=t=>String(t).replace(/[|\r\n]+/g," ").trim();
 function text(){
   const tage=Object.keys(wunsch).map(Number).sort((a,b)=>a-b).map(t=>`${String(t).padStart(2,"0")}:${wunsch[t]}${wichtig.has(t)?"!":""}`).join(" ");
   const name=sauber($("name").value),notiz=sauber($("notiz").value);
-  const t=`ITS-Wunsch | ${name||"?"} | ${$("monat").value} | ${tage} | ${notiz}`;
+  // Stand der Wünsche (Ortszeit), damit die Dienstplanung ältere und neuere Fassungen unterscheiden kann
+  const d=new Date(),zwei=x=>String(x).padStart(2,"0"),stand=`${d.getFullYear()}-${zwei(d.getMonth()+1)}-${zwei(d.getDate())}T${zwei(d.getHours())}:${zwei(d.getMinutes())}`;
+  const t=`ITS-Wunsch | ${name||"?"} | ${$("monat").value} | ${tage} | ${notiz} | ${stand}`;
   $("text").value=t;
   $("mail").href=`mailto:${empfaenger()}?subject=${encodeURIComponent("Dienstwünsche "+$("monat").selectedOptions[0].text+" – "+(name||""))}&body=${encodeURIComponent(t)}`;
 }
@@ -168,7 +170,7 @@ $("kal").onclick=e=>{
 $("monat").onchange=()=>{for(const k of Object.keys(wunsch))delete wunsch[k];wichtig.clear();zeichne();};
 $("name").oninput=()=>{lsSet("its-wunsch-name",$("name").value.trim());text();};
 $("notiz").oninput=text;
-$("mail").onclick=e=>{if(!pruefe())e.preventDefault();};
+$("mail").onclick=e=>{if(!pruefe()){e.preventDefault();return;}text();};
 zeichne();
 </script>
 </body>
