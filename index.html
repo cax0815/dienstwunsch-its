@@ -47,7 +47,7 @@ button{-webkit-appearance:none;appearance:none}
   <div class="card">
     <div class="zeile">
       <div><label for="name">Name</label><input id="name" autocomplete="family-name" placeholder="Nachname wie im Dienstplan"></div>
-      <div><label for="monat">Monat</label><select id="monat"></select></div>
+      <div><label for="monat">Monat</label><select id="monat"></select><div class="hint" id="frist" style="margin:4px 0 0"></div></div>
     </div>
   </div>
 
@@ -90,16 +90,24 @@ let pinsel="FD";const wunsch={};
 // Empfänger rückwärts abgelegt, damit einfache Adress-Sammler ihn nicht im Seitentext finden
 const empfaenger=()=>["akhcstimer.netsrac","moc.duolci"].map(t=>[...t].reverse().join("")).join(String.fromCharCode(64));
 
-// Auswahl: aktueller Monat bis 14 Monate voraus, vorbelegt mit dem Folgemonat
-const jetzt=new Date();
-for(let i=0;i<15;i++){
-  const d=new Date(jetzt.getFullYear(),jetzt.getMonth()+i,1),v=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
-  $("monat").insertAdjacentHTML("beforeend",`<option value="${v}">${MONATE[d.getMonth()]} ${d.getFullYear()}</option>`);
+// Abgabe für einen Monat bis einschließlich zum 15. des Vorvormonats (März: bis 15. Januar).
+// Angeboten werden die offenen Monate der nächsten 14 Monate, vorbelegt mit dem frühesten.
+function offeneMonate(heute){
+  const tag=iso(heute.getFullYear(),heute.getMonth()+1,heute.getDate()),liste=[];
+  for(let i=0;i<15;i++){
+    const d=new Date(heute.getFullYear(),heute.getMonth()+i,1),frist=new Date(d.getFullYear(),d.getMonth()-2,15);
+    const f=iso(frist.getFullYear(),frist.getMonth()+1,15);
+    if(tag<=f)liste.push({wert:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`,text:`${MONATE[d.getMonth()]} ${d.getFullYear()}`,frist:f});
+  }
+  return liste;
 }
-$("monat").selectedIndex=1;
+const angebot=offeneMonate(new Date());
+$("monat").innerHTML=angebot.map(o=>`<option value="${o.wert}" data-frist="${o.frist}">${o.text}</option>`).join("");
+const fristText=()=>{const o=$("monat").selectedOptions[0];if(!o)return "";const f=o.dataset.frist;return `Abgabe bis ${f.slice(8)}.${f.slice(5,7)}.${f.slice(0,4)}`;};
 $("name").value=lsGet("its-wunsch-name")||"";
 
 function zeichne(){
+  $("frist").textContent=fristText();
   const [y,m]=$("monat").value.split("-").map(Number),n=new Date(Date.UTC(y,m,0)).getUTCDate();
   const versatz=(new Date(Date.UTC(y,m-1,1)).getUTCDay()+6)%7;
   let h=["Mo","Di","Mi","Do","Fr","Sa","So"].map(t=>`<div class="k">${t}</div>`).join("");
