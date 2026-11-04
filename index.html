@@ -43,11 +43,10 @@ button{-webkit-appearance:none;appearance:none}
 <body>
 <main>
   <h1>Dienstwünsche Intensivstation</h1>
-  <p class="hint">Name und Monat wählen, Wunsch antippen und dann die Tage antippen. Ein zweites Antippen mit demselben Wunsch entfernt ihn. Am Ende auf „Per E-Mail senden“ tippen und die Mail abschicken.</p>
+  <p class="hint">Monat wählen, Wunsch antippen und dann die Tage antippen. Ein zweites Antippen mit demselben Wunsch entfernt ihn. Am Ende auf „Per E-Mail senden“ tippen und die Mail abschicken. Bitte immer von derselben Mail-Adresse senden: Daran erkennt die Dienstplanung, von wem der Wunsch ist.</p>
 
   <div class="card">
     <div class="zeile">
-      <div><label for="name">Name <span style="font-weight:400">(optional, wenn deine Mail-Adresse hinterlegt ist)</span></label><input id="name" autocomplete="family-name" placeholder="Nachname wie im Dienstplan"></div>
       <div><label for="monat">Monat</label><select id="monat"></select><div class="hint" id="frist" style="margin:4px 0 0"></div></div>
     </div>
   </div>
@@ -107,7 +106,6 @@ function offeneMonate(heute){
 const angebot=offeneMonate(new Date());
 $("monat").innerHTML=angebot.map(o=>`<option value="${o.wert}" data-frist="${o.frist}">${o.text}</option>`).join("");
 const fristText=()=>{const o=$("monat").selectedOptions[0];if(!o)return "";const f=o.dataset.frist;return `Abgabe bis ${f.slice(8)}.${f.slice(5,7)}.${f.slice(0,4)}`;};
-$("name").value=lsGet("its-wunsch-name")||"";
 
 function zeichne(){
   $("frist").textContent=fristText();
@@ -125,12 +123,12 @@ function zeichne(){
 const sauber=t=>String(t).replace(/[|\r\n]+/g," ").trim();
 function text(){
   const tage=Object.keys(wunsch).map(Number).sort((a,b)=>a-b).map(t=>`${String(t).padStart(2,"0")}:${wunsch[t]}${wichtig.has(t)?"!":""}`).join(" ");
-  const name=sauber($("name").value),notiz=sauber($("notiz").value);
+  const notiz=sauber($("notiz").value);
   // Stand der Wünsche (Ortszeit), damit die Dienstplanung ältere und neuere Fassungen unterscheiden kann
   const d=new Date(),zwei=x=>String(x).padStart(2,"0"),stand=`${d.getFullYear()}-${zwei(d.getMonth()+1)}-${zwei(d.getDate())}T${zwei(d.getHours())}:${zwei(d.getMinutes())}`;
-  const t=`ITS-Wunsch | ${name||"?"} | ${$("monat").value} | ${tage} | ${notiz} | ${stand}`;
+  const t=`ITS-Wunsch |  | ${$("monat").value} | ${tage} | ${notiz} | ${stand}`;
   $("text").value=t;
-  $("mail").href=`mailto:${empfaenger()}?subject=${encodeURIComponent("[ITS-Wunsch] "+$("monat").selectedOptions[0].text+" – "+(name||""))}&body=${encodeURIComponent(t)}`;
+  $("mail").href=`mailto:${empfaenger()}?subject=${encodeURIComponent("[ITS-Wunsch] "+$("monat").selectedOptions[0].text)}&body=${encodeURIComponent(t)}`;
 }
 function melde(t,bad){$("meldung").textContent=t;$("meldung").className=bad?"bad":"";}
 function pruefe(){
@@ -167,7 +165,6 @@ $("kal").onclick=e=>{
   zeichne();
 };
 $("monat").onchange=()=>{for(const k of Object.keys(wunsch))delete wunsch[k];wichtig.clear();zeichne();};
-$("name").oninput=()=>{lsSet("its-wunsch-name",$("name").value.trim());text();};
 $("notiz").oninput=text;
 $("mail").onclick=e=>{if(!pruefe()){e.preventDefault();return;}text();};
 zeichne();
