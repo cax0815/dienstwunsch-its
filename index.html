@@ -47,7 +47,7 @@ button{-webkit-appearance:none;appearance:none}
 
   <div class="card">
     <div class="zeile">
-      <div><label for="name">Name</label><input id="name" autocomplete="family-name" placeholder="Nachname wie im Dienstplan"></div>
+      <div><label for="name">Name <span style="font-weight:400">(optional, wenn deine Mail-Adresse hinterlegt ist)</span></label><input id="name" autocomplete="family-name" placeholder="Nachname wie im Dienstplan"></div>
       <div><label for="monat">Monat</label><select id="monat"></select><div class="hint" id="frist" style="margin:4px 0 0"></div></div>
     </div>
   </div>
@@ -134,7 +134,6 @@ function text(){
 }
 function melde(t,bad){$("meldung").textContent=t;$("meldung").className=bad?"bad":"";}
 function pruefe(){
-  if(!sauber($("name").value)){melde("Bitte zuerst den Namen eintragen.",true);$("name").focus();return false;}
   if(!Object.keys(wunsch).length&&!sauber($("notiz").value)){melde("Es ist noch kein Wunsch eingetragen.",true);return false;}
   return true;
 }
